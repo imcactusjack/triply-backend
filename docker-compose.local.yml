@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: triply-mongo-local
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: triply
+      MONGO_INITDB_ROOT_PASSWORD: triply
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

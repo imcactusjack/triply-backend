@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  app:
+    image: ${DOCKERHUB_USERNAME}/triply-backend:latest
+    container_name: triply-backend-app
+    restart: always
+    env_file:
+      - .env.prod
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7
+    container_name: triply-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+volumes:
+  mongo_data:
