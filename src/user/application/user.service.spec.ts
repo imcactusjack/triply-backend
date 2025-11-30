@@ -5,7 +5,7 @@ import { UserLoginByEmailPasswordReqDto, UserSignUpReqDto } from '../api/user.re
 import { ILoginTokenValidator } from '../../auth/interface/login.token.validator';
 import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { ILoginToken } from '../../auth/interface/token';
-import { UserEntity } from '../../entity/user.entity';
+import { UserEntity } from '../../document/user.document';
 import { Repository } from 'typeorm';
 import { ILoginUserInfo } from '../../auth/interface/login.user';
 import { UserEntityTest } from '../../../test/user.entity.test';

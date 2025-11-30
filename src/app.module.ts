@@ -5,14 +5,15 @@ import { ConfigModule } from '@nestjs/config';
 import { LoggerMiddleware } from './common/api/logger.middleware';
 import { AuthModule } from './auth/auth.module';
 import { UserSocialModule } from './user_social/user.social.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [
-        ...(process.env.NODE_ENV === 'prod' ? ['.prod.env'] : []),
-        ...(process.env.NODE_ENV !== 'prod' ? ['.local.env'] : []),
+        ...(process.env.NODE_ENV === 'prod' ? ['.env.prod'] : []),
+        ...(process.env.NODE_ENV !== 'prod' ? ['.env.local'] : []),
       ],
     }),
     DatabaseModule,
@@ -23,6 +24,7 @@ import { UserSocialModule } from './user_social/user.social.module';
     //   }),
     // }),
     AuthModule,
+    UserModule,
     UserSocialModule,
   ],
   controllers: [AppController],

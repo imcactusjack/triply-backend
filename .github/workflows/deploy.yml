@@ -28,5 +28,23 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{secrets.DOCKERHUB_USERNAME }}/triply-backend:latest
-            ${{secrets.DOCKERHUB_USERNAME }}/triply-backend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/triply-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/triply-backend:${{ github.sha }}
+
+  deploy:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            cd /srv/triply                   # docker-compose.prod.yml 있는 폴더로 변경
+            docker compose pull app          # 최신 이미지 받아오고
+            docker compose up -d app         # 컨테이너 재시작
+            docker image prune -f            # 안 쓰는 이미지 정리
