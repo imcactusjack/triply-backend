@@ -24,7 +24,7 @@ export class UserSocialController {
   @Post('/user/social/login')
   async socialLogin(@Body() getBody: UserSocialLoginReqDto, @Res() res: Response) {
     const result = await this.userSocialService.socialLogin(getBody);
-    
+
     // refreshToken을 cookie에 설정
     res.cookie('refreshToken', result.refreshToken.value, {
       httpOnly: true,
