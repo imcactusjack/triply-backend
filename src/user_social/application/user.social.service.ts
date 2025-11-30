@@ -1,19 +1,19 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../entity/user.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User, UserDocument } from '../../document/user.document';
 import { UserSocialLoginResDto } from '../api/user.social.res.dto';
 import { SocialExtern } from '../infra/social.extern';
 import { IUserGetInfo } from '../interface/user.social';
 import { UserSocialLoginReqDto } from '../api/user.social.req.dto';
-import { Repository } from 'typeorm';
 import { ILoginUserInfo } from '../../auth/interface/login.user';
 import { ILoginTokenValidator } from '../../auth/interface/login.token.validator';
 
 @Injectable()
 export class UserSocialService {
   constructor(
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
     private socialExtern: SocialExtern,
     @Inject('ILoginTokenValidator')
     private loginTokenValidator: ILoginTokenValidator,
@@ -34,51 +34,57 @@ export class UserSocialService {
     } else if (getBody.provider === 'KAKAO') {
       const data = await this.socialExtern.getUserByKakaoAccessToken(getBody.token);
       socialUser = { provider: getBody.provider, email: data.email, name: data.name, phone: data.phone };
+    } else if (getBody.provider === 'NAVER') {
+      const data = await this.socialExtern.getUserByNaverToken(getBody.token);
+      socialUser = { provider: getBody.provider, email: data.email, name: data.name, phone: data.phone };
     }
     if (!socialUser.email) {
       throw new InternalServerErrorException('user email error');
     }
 
-    const user = await this.userRepository.findOne({
-      where: {
-        provider: socialUser.provider,
-        email: socialUser.email,
-      },
+    const user = await this.userModel.findOne({
+      provider: socialUser.provider,
+      email: socialUser.email,
+      deletedAt: null,
     });
 
     let loginUserInfo: ILoginUserInfo = {
-      id: 0,
-      name: '',
-      email: '',
+      id: user?._id.toString() || '',
+      name: user?.name || '',
+      email: user?.email || '',
     };
 
     if (!user) {
-      const dupEmailUser = await this.userRepository.findOne({
-        where: {
-          email: socialUser.email,
-        },
+      const dupEmailUser = await this.userModel.findOne({
+        email: socialUser.email,
+        deletedAt: null,
       });
 
       if (dupEmailUser) {
         throw new BadRequestException('Already Signup email');
       }
-      const createUser = new UserEntity();
 
-      createUser.name = ``;
-      createUser.provider = socialUser.provider;
-      createUser.email = socialUser.email;
-      createUser.password = null;
-
-      await this.userRepository.save(createUser);
+      const createUser = await this.userModel.create({
+        name: socialUser.name || '',
+        provider: socialUser.provider,
+        email: socialUser.email,
+        password: null,
+      });
 
       loginUserInfo = {
-        id: createUser.id,
+        id: createUser._id.toString(),
         name: createUser.name,
         email: createUser.email,
       };
+    } else {
+      loginUserInfo = {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+      };
     }
 
-    if (loginUserInfo.id === 0) {
+    if (!loginUserInfo || !loginUserInfo.id) {
       throw new InternalServerErrorException('user is not created');
     }
 

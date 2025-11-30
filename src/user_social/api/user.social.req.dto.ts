@@ -13,8 +13,8 @@ export class UserSocialLoginReqDto {
 
   @ApiProperty({
     type: String,
-    description: 'OAuth 제공사 ex) KAKAO, GOOGLE',
+    description: 'OAuth 제공사 ex) KAKAO, NAVER, GOOGLE',
   })
-  @IsIn(['KAKAO', 'GOOGLE'])
+  @IsIn(['KAKAO', 'GOOGLE', 'NAVER'])
   readonly provider: string;
 }

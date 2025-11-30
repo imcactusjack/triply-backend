@@ -1,5 +1,5 @@
 export type ILoginUserInfo = {
-  id: number;
+  id: string;
   name: string;
   email: string;
 };

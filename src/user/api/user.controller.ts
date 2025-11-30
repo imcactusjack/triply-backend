@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { UserService } from '../application/user.service';
 import {
   ApiBadRequestResponse,
@@ -58,7 +59,8 @@ export class UserController {
   @ApiOperation({
     summary: '유저 email password API',
     description:
-      '회원가입진행한 id password 를 통해 로그인을 진행합니다.<br>' + '소셜로 로그인 햇을 경우 에러가 발생합니다.',
+      '회원가입 진행한 email password 를 통해 로그인 후 액세스 토큰을 반환합니다, 리프레쉬 토큰은 쿠키에 담깁니다.<br>' +
+      '소셜로 가입한 경우 에러가 발생합니다.',
   })
   @ApiOkResponse({
     type: UserLoginByEmailPasswordResDto,
@@ -72,8 +74,22 @@ export class UserController {
   })
   // ============================================
   @Post('/user/login-email-password')
-  loginByEmailPassword(@Body() loginDto: UserLoginByEmailPasswordReqDto) {
-    return this.userService.loginByEmailPassword(loginDto);
+  async loginByEmailPassword(@Body() loginDto: UserLoginByEmailPasswordReqDto, @Res() res: Response) {
+    const result = await this.userService.loginByEmailPassword(loginDto);
+
+    // refreshToken을 cookie에 설정
+    res.cookie('refreshToken', result.refreshToken.value, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'prod',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
+    });
+
+    // accessToken만 body에 반환
+    return res.json({
+      accessToken: result.accessToken,
+      name: result.name,
+    });
   }
 
   @ApiOperation({
@@ -99,8 +115,8 @@ export class UserController {
   })
   // ============================================
   @Post('/user/access-by-refresh')
-  getAccessByRefresh(@Body() getBodyDto: UserGetAccessByRefreshReqDto) {
-    return this.userService.getAccessByRefresh(getBodyDto.token);
+  getAccessByRefresh(@Body() getBody: UserGetAccessByRefreshReqDto, @Res() res: Response) {
+    return this.userService.getAccessByRefresh(getBody.token);
   }
 
   @ApiOperation({
@@ -126,7 +142,26 @@ export class UserController {
   })
   // ============================================
   @Post('/user/refresh-by-refresh')
-  getRefreshByToken(@Body() getBody: UserGetRefreshByRefreshReqDto) {
-    return this.userService.getLoginTokenByRefresh(getBody.token);
+  async getRefreshByToken(@Body() getBody: UserGetRefreshByRefreshReqDto, @Res() res: Response) {
+    // body에서 token을 받거나, 없으면 cookie에서 가져오기
+    const refreshToken = getBody.token || (res.req as any).cookies?.refreshToken;
+    if (!refreshToken) {
+      throw new BadRequestException('refresh token is required');
+    }
+
+    const result = await this.userService.getLoginTokenByRefresh(refreshToken);
+
+    // refreshToken을 cookie에 다시 설정
+    res.cookie('refreshToken', result.refreshToken.value, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'prod',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
+    });
+
+    // accessToken만 body에 반환
+    return res.json({
+      accessToken: result.accessToken,
+    });
   }
 }

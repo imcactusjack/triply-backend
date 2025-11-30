@@ -1,16 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { initializeTransactionalContext } from 'typeorm-transactional';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TransformResInterceptor } from './common/api/transform.res.interceptor';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  initializeTransactionalContext();
-
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors();
+  app.use(cookieParser());
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
   app.useGlobalInterceptors(new TransformResInterceptor());
   app.useGlobalPipes(new ValidationPipe({ whitelist: false, transform: true }));
 

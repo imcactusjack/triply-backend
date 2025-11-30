@@ -21,8 +21,6 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongo_data:/data/db
-    ports:
-      - "27017:27017"
 
 volumes:
   mongo_data:

@@ -1,4 +1,4 @@
-import { UserEntity } from '../src/entity/user.entity';
+import { UserEntity } from '../src/document/user.document';
 
 export const UserEntityTest = (): UserEntity => {
   return {
