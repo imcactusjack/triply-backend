@@ -44,7 +44,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            cd /home/ubuntu/triply           # docker-compose.prod.yml 있는 폴더로 변경
-            docker compose pull app          # 최신 이미지 받아오고
-            docker compose up -d app         # 컨테이너 재시작
-            docker image prune -f            # 안 쓰는 이미지 정리
+            cd /home/ubuntu/triply
+            echo "IMAGE_TAG=${GITHUB_SHA}" > .env.deploy
+            export $(cat .env.deploy | xargs)
+            docker compose pull app
+            docker compose up -d app
+            docker image prune -f
