@@ -46,6 +46,7 @@ jobs:
             cd /home/ubuntu/triply
             echo "IMAGE_TAG=${{ github.sha }}" > .env.deploy
             export IMAGE_TAG=${{ github.sha }}
-            docker compose pull app
-            docker compose up -d app
+            docker-compose -f docker-compose.prod.yml pull app
+            docker-compose -f docker-compose.prod.yml up -d app
+            
             docker image prune -f
