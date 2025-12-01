@@ -34,7 +34,6 @@ jobs:
   deploy:
     needs: build_and_push
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -45,8 +44,8 @@ jobs:
           port: 22
           script: |
             cd /home/ubuntu/triply
-            echo "IMAGE_TAG=${GITHUB_SHA}" > .env.deploy
-            export $(cat .env.deploy | xargs)
+            echo "IMAGE_TAG=${{ github.sha }}" > .env.deploy
+            export IMAGE_TAG=${{ github.sha }}
             docker compose pull app
             docker compose up -d app
             docker image prune -f
