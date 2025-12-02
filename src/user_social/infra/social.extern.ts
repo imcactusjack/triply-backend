@@ -23,7 +23,12 @@ export class SocialExtern {
         })
         .pipe(
           catchError((error: AxiosError) => {
-            throw new UnauthorizedException('USER_SOCIAL_LOGIN_FAIL');
+            const errorData = error.response?.data as any;
+            const errorMessage =
+              errorData?.error?.message || errorData?.error_description || error.message || '알 수 없는 오류';
+            const errorCode = errorData?.error?.code || error.response?.status;
+            this.logger.error(`[GOOGLE] API 호출 실패: ${errorMessage} (코드: ${errorCode})`);
+            throw new UnauthorizedException(`구글 로그인 실패: ${errorMessage}`);
           }),
         ),
     );
@@ -32,6 +37,7 @@ export class SocialExtern {
       provider: 'GOOGLE',
       email: data.email,
       name: data.family_name + data.given_name,
+      socialId: data.sub,
       ...data,
     } as IUserGetInfo;
   }
@@ -44,8 +50,12 @@ export class SocialExtern {
         })
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error);
-            throw new UnauthorizedException('USER_SOCIAL_LOGIN_FAIL');
+            const errorData = error.response?.data as any;
+            const errorMessage =
+              errorData?.errorMessage || errorData?.error_description || error.message || '알 수 없는 오류';
+            const errorCode = errorData?.errorCode || error.response?.status;
+            this.logger.error(`[NAVER] API 호출 실패: ${errorMessage} (코드: ${errorCode})`);
+            throw new UnauthorizedException(`네이버 로그인 실패: ${errorMessage}`);
           }),
         ),
     );
@@ -67,47 +77,85 @@ export class SocialExtern {
       name: response.name,
       phone,
       birthDate,
+      socialId: response.id,
       ...response,
     } as IUserGetInfo;
   }
 
   async getUserByKakaoAccessToken(accessToken: string) {
-    const { data } = await firstValueFrom(
-      this.httpService
-        .get('https://kapi.kakao.com/v2/user/me', {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        .pipe(
-          catchError((error: AxiosError) => {
-            this.logger.error(error);
-            throw new UnauthorizedException('USER_SOCIAL_LOGIN_FAIL');
-          }),
-        ),
-    );
+    this.logger.log(`[KAKAO] 액세스 토큰으로 사용자 정보 요청 시작`);
+    this.logger.log(`[KAKAO] 액세스 토큰: ${accessToken.substring(0, 20)}...`);
 
-    const { kakao_account } = data;
-    this.logger.log(JSON.stringify(data));
-    let phone = '';
-    let email = kakao_account.email;
-    let name = '';
-    if (!kakao_account || !kakao_account.email) {
-      throw new BadRequestException('kakao email not exist');
-    }
-    if (kakao_account && kakao_account.phone_number) {
-      phone = '0' + kakao_account.phone_number.split(' ')[1].split('-').join('');
-    }
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService
+          .get('https://kapi.kakao.com/v2/user/me', {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+            },
+          })
+          .pipe(
+            catchError((error: AxiosError) => {
+              const errorData = error.response?.data as any;
+              const errorMessage = errorData?.msg || errorData?.error_description || error.message || '알 수 없는 오류';
+              const errorCode = errorData?.code || error.response?.status;
 
-    if (kakao_account && kakao_account.name) {
-      name = kakao_account.name ?? kakao_account.profile.nickname;
-    }
+              this.logger.error(`[KAKAO] API 호출 실패`);
+              this.logger.error(`[KAKAO] Status: ${error.response?.status}`);
+              this.logger.error(`[KAKAO] Status Text: ${error.response?.statusText}`);
+              this.logger.error(`[KAKAO] Response Data: ${JSON.stringify(error.response?.data)}`);
+              this.logger.error(`[KAKAO] Error Message: ${errorMessage} (코드: ${errorCode})`);
 
-    return {
-      provider: 'KAKAO',
-      email: email,
-      name: name,
-      phone,
-      ...data,
-    } as IUserGetInfo;
+              if (error.response?.status === 401) {
+                throw new UnauthorizedException(`카카오 로그인 실패: ${errorMessage} (코드: ${errorCode})`);
+              }
+              throw new UnauthorizedException(`카카오 로그인 실패: ${errorMessage} (코드: ${errorCode})`);
+            }),
+          ),
+      );
+
+      this.logger.log(`[KAKAO] 사용자 정보 조회 성공`);
+
+      const { kakao_account } = data;
+      this.logger.log(`[KAKAO] 사용자 데이터: ${JSON.stringify(data)}`);
+
+      let phone = '';
+      const socialId = data.id.toString();
+      const email = kakao_account.email;
+      let name = '';
+      if (!kakao_account) {
+        throw new BadRequestException('카카오 회원 정보가 존재하지 않습니다.');
+      }
+      if (kakao_account && kakao_account.phone_number) {
+        phone = '0' + kakao_account.phone_number.split(' ')[1].split('-').join('');
+      }
+
+      // name이 없으면 profile.nickname 사용, 그것도 없으면 기본값 사용
+      if (kakao_account.name) {
+        name = kakao_account.name;
+      } else if (kakao_account.profile?.nickname) {
+        name = kakao_account.profile.nickname;
+      } else {
+        name = `KAKAO_USER_${socialId.substring(0, 8)}`;
+      }
+
+      return {
+        provider: 'KAKAO',
+        socialId: socialId,
+        email: email,
+        name: name,
+        phone,
+        ...data,
+      } as IUserGetInfo;
+    } catch (error) {
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(`[KAKAO] 예상치 못한 오류 발생: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      throw new UnauthorizedException(`카카오 로그인 실패: ${errorMessage}`);
+    }
   }
 
   async getAppleToken(code: string, os: string): Promise<any> {
@@ -160,6 +208,7 @@ export class SocialExtern {
 
     // 적절한 키로 JWT 검증
     const decodedToken: any = jwt.decode(idToken, { complete: true });
+
     // apple any 처리
     const key = keys.find((k: any) => k.kid === decodedToken?.header?.kid);
 
