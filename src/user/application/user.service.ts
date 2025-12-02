@@ -71,6 +71,7 @@ export class UserService {
     const loginUserInfo: ILoginUserInfo = {
       id: user._id.toString(),
       name: user.name || '',
+      socialId: user.email,
       email: user.email,
     };
 

@@ -22,29 +22,48 @@ export class UserSocialService {
   async socialLogin(getBody: UserSocialLoginReqDto): Promise<UserSocialLoginResDto> {
     let socialUser: IUserGetInfo = {
       provider: getBody.provider,
+      socialId: '',
       phone: undefined,
       birthDate: undefined,
       name: '',
-      email: '',
+      email: undefined,
     };
 
     if (getBody.provider === 'GOOGLE') {
       const data = await this.socialExtern.getUserByGoogleToken(getBody.token);
-      socialUser = { provider: getBody.provider, email: data.email, name: data.name, phone: data.phone };
+      socialUser = {
+        provider: getBody.provider,
+        socialId: data.socialId,
+        email: data.email,
+        name: data.name,
+        phone: data.phone,
+        birthDate: data.birthDate,
+      };
     } else if (getBody.provider === 'KAKAO') {
       const data = await this.socialExtern.getUserByKakaoAccessToken(getBody.token);
-      socialUser = { provider: getBody.provider, email: data.email, name: data.name, phone: data.phone };
+      socialUser = {
+        provider: getBody.provider,
+        socialId: data.socialId,
+        email: data.email,
+        name: data.name,
+        phone: data.phone,
+        birthDate: data.birthDate,
+      };
     } else if (getBody.provider === 'NAVER') {
       const data = await this.socialExtern.getUserByNaverToken(getBody.token);
-      socialUser = { provider: getBody.provider, email: data.email, name: data.name, phone: data.phone };
-    }
-    if (!socialUser.email) {
-      throw new InternalServerErrorException('user email error');
+      socialUser = {
+        provider: getBody.provider,
+        socialId: data.socialId,
+        email: data.email,
+        name: data.name,
+        phone: data.phone,
+        birthDate: data.birthDate,
+      };
     }
 
     const user = await this.userModel.findOne({
       provider: socialUser.provider,
-      email: socialUser.email,
+      socialId: socialUser.socialId,
       deletedAt: null,
     });
 
@@ -65,8 +84,9 @@ export class UserSocialService {
       }
 
       const createUser = await this.userModel.create({
-        name: socialUser.name || '',
+        name: socialUser.name,
         provider: socialUser.provider,
+        socialId: socialUser.socialId,
         email: socialUser.email,
         password: null,
       });
@@ -74,12 +94,14 @@ export class UserSocialService {
       loginUserInfo = {
         id: createUser._id.toString(),
         name: createUser.name,
+        socialId: createUser.socialId,
         email: createUser.email,
       };
     } else {
       loginUserInfo = {
         id: user._id.toString(),
         name: user.name,
+        socialId: user.socialId,
         email: user.email,
       };
     }
