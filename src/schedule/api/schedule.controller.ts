@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ScheduleService } from '../application/schedule.service';
 import { ScheduleRecommendReqDto } from './schedule.req.dto';
 import { ScheduleRecommendResDto } from './schedule.res.dto';
@@ -15,10 +15,7 @@ export class ScheduleController {
   })
   @ApiOkResponse({
     type: ScheduleRecommendResDto,
-    description: '여행 일정 추천 성공',
-  })
-  @ApiBadRequestResponse({
-    description: '잘못된 입력 값',
+    description: '정상적으로 추천할 경우',
   })
   @Post('/schedule/recommend')
   async recommendSchedule(@Body() reqDto: ScheduleRecommendReqDto): Promise<ScheduleRecommendResDto> {
