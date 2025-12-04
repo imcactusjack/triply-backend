@@ -17,15 +17,10 @@ import { UserModule } from './user/user.module';
       ],
     }),
     DatabaseModule,
-    // MulterModule.registerAsync({
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService) => ({
-    //     dest: configService.getOrThrow('UPLOAD_IMAGE_FILE_PATH'),
-    //   }),
-    // }),
     AuthModule,
     UserModule,
     UserSocialModule,
+    // ScheduleModule,
   ],
   controllers: [AppController],
   providers: [],

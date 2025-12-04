@@ -5,12 +5,13 @@ export type IUserSocial = {
   email: string;
 };
 
-export type IUserSocialProvider = 'google' | 'kakao';
+export type IUserSocialProvider = 'google' | 'kakao' | 'naver';
 
 export type IUserGetInfo = {
+  socialId: string;
   provider: string;
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   phone?: string;
   birthDate?: string;
 };

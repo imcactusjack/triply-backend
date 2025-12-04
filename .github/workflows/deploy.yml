@@ -43,19 +43,42 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            set -e
+
             cd /home/ubuntu/triply
-          
-            echo "IMAGE_TAG=${{ github.sha }}" > .env.deploy
-            export IMAGE_TAG=${{ github.sha }}
-          
-            # 1) App 컨테이너가 있으면 먼저 정리
-            docker-compose -f docker-compose.prod.yml stop app || true
-            docker-compose -f docker-compose.prod.yml rm -f app || true
-          
-            # 2) 새 이미지
-            docker-compose -f docker-compose.prod.yml pull app
-          
-            # 3) 새 컨테이너로 올리기
-            docker-compose -f docker-compose.prod.yml up -d app
-          
+
+            IMAGE_TAG="${{ github.sha }}"
+            DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+
+            # .env.prod 파일이 없으면 에러
+            if [ ! -f .env.prod ]; then
+              echo "ERROR: .env.prod 파일이 존재하지 않습니다."
+              exit 1
+            fi
+
+            # .env.prod에서 IMAGE_TAG 업데이트 (있으면 업데이트, 없으면 추가)
+            if grep -q "^IMAGE_TAG=" .env.prod; then
+              sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${IMAGE_TAG}/" .env.prod
+            else
+              echo "IMAGE_TAG=${IMAGE_TAG}" >> .env.prod
+            fi
+
+            # docker compose에서 사용할 환경 변수 내보내기
+            export IMAGE_TAG
+            export DOCKERHUB_USERNAME
+
+            # Docker Hub 로그인 (레포가 private이면 필수)
+            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+
+            # App 컨테이너만 재시작
+            docker compose -f docker-compose.prod.yml stop app || true
+            docker compose -f docker-compose.prod.yml rm -f app || true
+
+            # 새 이미지 pull
+            docker compose -f docker-compose.prod.yml pull app
+
+            # App 컨테이너만 재시작 (MongoDB 컨테이너는 유지)
+            docker compose -f docker-compose.prod.yml up -d app
+
+            # 사용하지 않는 이미지 정리
             docker image prune -f
