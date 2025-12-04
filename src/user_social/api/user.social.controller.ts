@@ -29,7 +29,7 @@ export class UserSocialController {
     res.cookie('refreshToken', result.refreshToken.value, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'prod',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
     });
 
