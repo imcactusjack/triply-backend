@@ -1,13 +1,20 @@
 import { LoginTokenResDto, TokenDto } from '../../auth/api/token.res.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserLoginByEmailPasswordResDto extends LoginTokenResDto {
+export class UserLoginByEmailPasswordResDto {
   @ApiProperty({
     type: String,
-    description: '로그인한 유저의 이름 ',
+    description: 'access 토큰 값',
   })
   // =====================================================
-  readonly name: string;
+  readonly accessToken: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'access 토큰 만료 날짜',
+  })
+  // =====================================================
+  readonly expiredAt: string;
 }
 
 export class UserAccessByRefreshResDto {
@@ -19,4 +26,4 @@ export class UserAccessByRefreshResDto {
   readonly accessToken: TokenDto;
 }
 
-export class UserRefreshByRefreshResDto extends LoginTokenResDto {}
+export class UserRefreshByRefreshResDto extends LoginTokenResDto { }

@@ -2,10 +2,10 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../../document/user.document';
-import { UserSocialLoginResDto } from '../api/user.social.res.dto';
 import { SocialExtern } from '../infra/social.extern';
 import { IUserGetInfo } from '../interface/user.social';
 import { UserSocialLoginReqDto } from '../api/user.social.req.dto';
+import { UserSocialLoginResDto } from '../api/user.social.res.dto';
 import { ILoginUserInfo } from '../../auth/interface/login.user';
 import { ILoginTokenValidator } from '../../auth/interface/login.token.validator';
 
@@ -17,7 +17,7 @@ export class UserSocialService {
     private socialExtern: SocialExtern,
     @Inject('ILoginTokenValidator')
     private loginTokenValidator: ILoginTokenValidator,
-  ) {}
+  ) { }
 
   async socialLogin(getBody: UserSocialLoginReqDto): Promise<UserSocialLoginResDto> {
     let socialUser: IUserGetInfo = {
