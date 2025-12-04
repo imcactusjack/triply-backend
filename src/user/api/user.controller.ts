@@ -88,7 +88,8 @@ export class UserController {
     // accessToken만 body에 반환
     return res.json({
       accessToken: result.accessToken,
-      name: result.name,
+      userId: result.userId,
+      userName: result.userName,
     });
   }
 

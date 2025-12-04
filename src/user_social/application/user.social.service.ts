@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../../document/user.document';
@@ -106,10 +106,10 @@ export class UserSocialService {
       };
     }
 
-    if (!loginUserInfo || !loginUserInfo.id) {
-      throw new InternalServerErrorException('user is not created');
-    }
-
-    return this.loginTokenValidator.issuance(loginUserInfo);
+    return {
+      ...this.loginTokenValidator.issuance(loginUserInfo),
+      userId: loginUserInfo.id,
+      userName: loginUserInfo.name,
+    };
   }
 }

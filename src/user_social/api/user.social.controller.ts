@@ -36,6 +36,8 @@ export class UserSocialController {
     // accessToken만 body에 반환
     return res.json({
       accessToken: result.accessToken,
+      userId: result.userId,
+      userName: result.userName,
     });
   }
 }

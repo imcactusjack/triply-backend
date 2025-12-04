@@ -75,7 +75,11 @@ export class UserService {
       email: user.email,
     };
 
-    return { ...this.loginTokenValidator.issuance(loginUserInfo), name: user.name };
+    return {
+      ...this.loginTokenValidator.issuance(loginUserInfo),
+      userId: user._id,
+      userName: user.name,
+    };
   }
 
   async getAccessByRefresh(token: string) {
@@ -110,18 +114,5 @@ export class UserService {
     }
 
     return this.loginTokenValidator.issuance(userDecode);
-  }
-
-  async delete(user: ILoginUserInfo) {
-    const oneUser = await this.userModel.findOne({
-      _id: user.id,
-      deletedAt: null,
-    });
-
-    if (!oneUser) {
-      throw new BadRequestException('USER_DOES_NOT_EXIST');
-    }
-
-    await this.userModel.updateOne({ _id: user.id }, { deletedAt: new Date() });
   }
 }
