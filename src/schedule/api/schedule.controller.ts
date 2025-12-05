@@ -21,7 +21,7 @@ export class ScheduleController {
     description: '잘못된 입력 값',
   })
   @Post('/schedule/recommend')
-  async recommendSchedule(@Body() reqDto: ScheduleRecommendReqDto): Promise<ScheduleRecommendResDto> {
-    return this.scheduleService.recommendSchedule(reqDto);
+  async recommendSchedule(@Body() request: ScheduleRecommendReqDto): Promise<ScheduleRecommendResDto> {
+    return this.scheduleService.recommendSchedule(request);
   }
 }

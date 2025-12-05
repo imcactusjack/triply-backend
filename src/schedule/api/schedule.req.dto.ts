@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsNotEmpty,
-  IsString,
-  IsOptional,
-  ValidateNested,
+  IsArray,
   IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
   Validate,
+  ValidateNested,
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,
@@ -30,7 +31,7 @@ export class IsEndDateAfterStartDateConstraint implements ValidatorConstraintInt
 class TravelDateDto {
   @ApiProperty({
     description: '여행 시작일 ex) yyyy-MM-dd',
-    example: '2024-01-01',
+    example: '2025-01-01',
   })
   @IsNotEmpty()
   @IsDateString()
@@ -38,7 +39,7 @@ class TravelDateDto {
 
   @ApiProperty({
     description: '여행 종료일 ex) yyyy-MM-dd',
-    example: '2024-01-03',
+    example: '2025-01-03',
   })
   @IsNotEmpty()
   @IsDateString()
@@ -81,12 +82,11 @@ export class ScheduleRecommendReqDto {
   dates: TravelDateDto;
 
   @ApiProperty({
-    description: '여행 컨셉 (맛집, 관광지, 자연, 휴식, 쇼핑, 액티비티, 핫플 등)',
-    example: '맛집',
+    description: '여행 컨셉 list',
   })
   @IsNotEmpty()
-  @IsString()
-  concept: string;
+  @IsArray()
+  concepts: string[];
 
   @ApiProperty({
     description: '추가 선호사항 (선택사항)',
