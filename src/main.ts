@@ -1,11 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TransformResInterceptor } from './common/api/transform.res.interceptor';
 import * as cookieParser from 'cookie-parser';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 
 async function bootstrap() {
+  initializeTransactionalContext();
+  const logger = new Logger('Bootstrap');
+
+  const envFiles = process.env.NODE_ENV === 'prod' ? ['.env.prod'] : ['.env.local'];
+  const nodeEnv = process.env.NODE_ENV || 'local';
+
+  logger.log(`NODE_ENV=${nodeEnv}`);
+  logger.log(`Config env files=${envFiles.join(', ')}`);
+
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
@@ -29,6 +39,7 @@ async function bootstrap() {
   if (process.env.PORT) {
     port = +process.env.PORT;
   }
+  logger.log(`PORT=${port}`);
   await app.listen(port);
 }
 bootstrap();

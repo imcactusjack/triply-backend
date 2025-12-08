@@ -42,44 +42,104 @@ export class SocialExtern {
     } as IUserGetInfo;
   }
 
-  async getUserByNaverToken(token: string) {
-    const { data } = await firstValueFrom(
-      this.httpService
-        .get('https://openapi.naver.com/v1/nid/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .pipe(
-          catchError((error: AxiosError) => {
-            const errorData = error.response?.data as any;
-            const errorMessage =
-              errorData?.errorMessage || errorData?.error_description || error.message || '알 수 없는 오류';
-            const errorCode = errorData?.errorCode || error.response?.status;
-            this.logger.error(`[NAVER] API 호출 실패: ${errorMessage} (코드: ${errorCode})`);
-            throw new UnauthorizedException(`네이버 로그인 실패: ${errorMessage}`);
-          }),
-        ),
-    );
+  async getUserByNaverCode(code: string, state?: string): Promise<IUserGetInfo> {
+    this.logger.log(`[NAVER] 인증 코드로 토큰 발급 시작`);
+    this.logger.log(`[NAVER] Code: ${code.substring(0, 20)}...`);
 
-    const { response } = data;
+    try {
+      const clientId = this.configService.getOrThrow('NAVER_CLIENT_ID');
+      const clientSecret = this.configService.getOrThrow('NAVER_CLIENT_SECRET');
 
-    let phone: string = '';
-    let birthDate: string = '';
-    if (response.mobile) {
-      phone = response.mobile.split('-').join('');
+      // code로 access_token 발급
+      const tokenParams = new URLSearchParams();
+      tokenParams.append('grant_type', 'authorization_code');
+      tokenParams.append('client_id', clientId);
+      tokenParams.append('client_secret', clientSecret);
+      tokenParams.append('code', code);
+      if (state) {
+        tokenParams.append('state', state);
+      }
+
+      const tokenResponse = await firstValueFrom(
+        this.httpService
+          .post('https://nid.naver.com/oauth2.0/token', tokenParams.toString(), {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+            },
+          })
+          .pipe(
+            catchError((error: AxiosError) => {
+              const errorData = error.response?.data as any;
+              const errorMessage =
+                errorData?.error_description || errorData?.error || error.message || '알 수 없는 오류';
+              const errorCode = errorData?.error || error.response?.status;
+
+              this.logger.error(`[NAVER] 토큰 발급 실패`);
+              this.logger.error(`[NAVER] Status: ${error.response?.status}`);
+              this.logger.error(`[NAVER] Response Data: ${JSON.stringify(error.response?.data)}`);
+              this.logger.error(`[NAVER] Error Message: ${errorMessage} (코드: ${errorCode})`);
+
+              throw new UnauthorizedException(`네이버 토큰 발급 실패: ${errorMessage}`);
+            }),
+          ),
+      );
+
+      const accessToken = tokenResponse.data.access_token;
+      this.logger.log(`[NAVER] 토큰 발급 성공`);
+
+      // access_token으로 사용자 정보 가져오기
+      const { data } = await firstValueFrom(
+        this.httpService
+          .get('https://openapi.naver.com/v1/nid/me', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          })
+          .pipe(
+            catchError((error: AxiosError) => {
+              const errorData = error.response?.data as any;
+              const errorMessage =
+                errorData?.errorMessage || errorData?.error_description || error.message || '알 수 없는 오류';
+              const errorCode = errorData?.errorCode || error.response?.status;
+
+              this.logger.error(`[NAVER] 사용자 정보 조회 실패`);
+              this.logger.error(`[NAVER] Status: ${error.response?.status}`);
+              this.logger.error(`[NAVER] Response Data: ${JSON.stringify(error.response?.data)}`);
+              this.logger.error(`[NAVER] Error Message: ${errorMessage} (코드: ${errorCode})`);
+
+              throw new UnauthorizedException(`네이버 로그인 실패: ${errorMessage}`);
+            }),
+          ),
+      );
+
+      this.logger.log(`[NAVER] 사용자 정보 조회 성공`);
+
+      const { response } = data;
+
+      let phone: string = '';
+      let birthDate: string = '';
+      if (response.mobile) {
+        phone = response.mobile.split('-').join('');
+      }
+      if (response.birthyear && response.birthday) {
+        birthDate = response.birthyear + '-' + response.birthday;
+      }
+
+      return {
+        provider: 'NAVER',
+        email: response.email,
+        name: response.name,
+        phone,
+        birthDate,
+        socialId: response.id,
+        ...response,
+      } as IUserGetInfo;
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.error(`[NAVER] 예상치 못한 오류 발생: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      throw new UnauthorizedException(`네이버 로그인 실패: ${errorMessage}`);
     }
-    if (response.birthyear && response.birthday) {
-      birthDate = response.birthyear + '-' + response.birthday;
-    }
-
-    return {
-      provider: 'NAVER',
-      email: response.email,
-      name: response.name,
-      phone,
-      birthDate,
-      socialId: response.id,
-      ...response,
-    } as IUserGetInfo;
   }
 
   async getUserByKakaoAccessToken(accessToken: string) {

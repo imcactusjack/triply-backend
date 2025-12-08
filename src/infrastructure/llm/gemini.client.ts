@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 import { LLMClient, TravelDayPlan, TravelPlanLLMInput, TravelPlanLLMResponse } from './interface/llm.client';
-import { buildTravelPlanPrompt } from './prompt/travel-plan.prompt';
+import { buildTravelPlanPrompt } from './prompt/travel.plan.prompt';
 
 @Injectable()
 export class GeminiClient implements LLMClient {
@@ -90,7 +90,8 @@ export class GeminiClient implements LLMClient {
             ? dayPlan.activities.map((activity: any) => ({
                 time: activity.time || '',
                 location: activity.location || '',
-                category: activity.category || '',
+                placeSearchQuery: activity.placeSearchQuery || undefined,
+                categories: activity.categories || [],
                 rating: activity.rating !== undefined ? activity.rating : undefined,
                 operatingHours: activity.operatingHours || undefined,
                 travelTime: activity.travelTime || undefined,
@@ -100,7 +101,10 @@ export class GeminiClient implements LLMClient {
                       latitude: activity.coordinates.latitude,
                       longitude: activity.coordinates.longitude,
                     }
-                  : undefined,
+                  : {
+                      latitude: null,
+                      longitude: null,
+                    },
               }))
             : [],
         };

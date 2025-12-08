@@ -25,7 +25,7 @@ import { UserAccessByRefreshResDto, UserLoginByEmailPasswordResDto, UserRefreshB
 @ApiTags('user')
 @Controller('')
 export class UserController {
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {}
 
   @ApiOperation({
     summary: '이메일 중복 검사 API',
