@@ -1,17 +1,26 @@
-version: "3.9"
+version: '3.9'
 
 services:
-  mongo:
-    image: mongo:7
-    container_name: triply-mongo-local
+  mysql:
+    image: mysql:8.0
+    container_name: triply-mysql-local
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: triply
-      MONGO_INITDB_ROOT_PASSWORD: triply
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: triply
+      MYSQL_USER: triply
+      MYSQL_PASSWORD: triply
+    command: ['--default-authentication-plugin=mysql_native_password']
     ports:
-      - "27017:27017"
+      - '3307:3306'
     volumes:
-      - mongo_data:/data/db
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
-  mongo_data:
+  mysql_data:

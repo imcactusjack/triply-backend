@@ -1,32 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Validate,
-  ValidateNested,
-  ValidationArguments,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
-} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsArray, IsDateString, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-
-@ValidatorConstraint({ name: 'isEndDateAfterStartDate', async: false })
-export class IsEndDateAfterStartDateConstraint implements ValidatorConstraintInterface {
-  validate(endDate: string, args: ValidationArguments) {
-    const startDate = (args.object as TravelDateDto).startDate;
-    if (!startDate || !endDate) {
-      return true;
-    }
-    return new Date(endDate) > new Date(startDate);
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    return '여행 종료일은 시작일보다 이후여야 합니다.';
-  }
-}
+import { IsEndDateAfterStartDate } from '../../common/validator';
 
 class TravelDateDto {
   @ApiProperty({
@@ -43,7 +18,7 @@ class TravelDateDto {
   })
   @IsNotEmpty()
   @IsDateString()
-  @Validate(IsEndDateAfterStartDateConstraint)
+  @IsEndDateAfterStartDate({ message: '여행 종료일은 시작일보다 이후여야 합니다.' })
   endDate: string;
 }
 
@@ -88,10 +63,9 @@ export class ScheduleRecommendReqDto {
   @IsArray()
   concepts: string[];
 
-  @ApiProperty({
-    description: '추가 선호사항 (선택사항)',
+  @ApiPropertyOptional({
+    description: '추가 선호사항',
     example: '조용한 곳 선호',
-    required: false,
   })
   @IsOptional()
   @IsString()

@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.9'
 
 services:
   app:
@@ -8,19 +8,30 @@ services:
     env_file:
       - .env.prod
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
-      - mongo
+      - mysql
 
-  mongo:
-    image: mongo:7
-    container_name: triply-mongo
+  mysql:
+    image: mysql:8.0
+    container_name: triply-mysql
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command: ['--default-authentication-plugin=mysql_native_password']
+    ports:
+      - '3306:3306'
     volumes:
-      - mongo_data:/data/db
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
-  mongo_data:
+  mysql_data:

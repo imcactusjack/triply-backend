@@ -1,11 +1,11 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { UserLoginByEmailPasswordReqDto, UserSignUpReqDto } from '../api/user.req.dto';
 import { PasswordBcryptEncrypt } from '../../auth/infrastructure/password.bcrypt.encrypt';
 import { ILoginTokenValidator } from '../../auth/interface/login.token.validator';
-import { User, UserDocument } from '../../document/user.document';
 import { ILoginUserInfo } from '../../auth/interface/login.user';
+import { UserEntity } from '../../entity/user.entity';
 
 @Injectable()
 export class UserService {
@@ -13,24 +13,21 @@ export class UserService {
     private passwordEncrypt: PasswordBcryptEncrypt,
     @Inject('ILoginTokenValidator')
     private loginTokenValidator: ILoginTokenValidator,
-    @InjectModel(User.name)
-    private userModel: Model<UserDocument>,
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
   ) {}
 
   async isExistEmail(email: string) {
-    const dupEmailUser = await this.userModel.findOne({
-      email: email,
-      deletedAt: null,
+    const dupEmailUser = await this.userRepository.findOne({
+      where: { email },
     });
-
     return !!dupEmailUser;
   }
 
   async signUp(signUpDto: UserSignUpReqDto) {
     // 1. 이미 동일한 이메일을 사용한 유저가 존재하는지 validation
-    const dupEmail = await this.userModel.countDocuments({
-      email: signUpDto.email,
-      deletedAt: null,
+    const dupEmail = await this.userRepository.count({
+      where: { email: signUpDto.email },
     });
 
     // 1.1 동일한 이메일 유저 계정이 존재할 경우 error
@@ -42,19 +39,19 @@ export class UserService {
     const passwordEncrypt = await this.passwordEncrypt.encrypt(signUpDto.password);
 
     // 3. 유저 계정 생성
-    await this.userModel.create({
+    const user = this.userRepository.create({
       email: signUpDto.email,
       password: passwordEncrypt,
       name: signUpDto.name,
     });
+    await this.userRepository.save(user);
     return;
   }
 
   async loginByEmailPassword(loginDto: UserLoginByEmailPasswordReqDto) {
     const { email, password } = loginDto;
-    const user = await this.userModel.findOne({
-      email: email,
-      deletedAt: null,
+    const user = await this.userRepository.findOne({
+      where: { email },
     });
 
     if (!user) {
@@ -69,10 +66,10 @@ export class UserService {
     }
 
     const loginUserInfo: ILoginUserInfo = {
-      id: user._id.toString(),
+      id: user.id,
       name: user.name || '',
-      socialId: user.email,
-      email: user.email,
+      socialId: user.socialId ?? undefined,
+      email: user.email ?? undefined,
     };
 
     return { ...this.loginTokenValidator.issuance(loginUserInfo), name: user.name };
@@ -81,9 +78,8 @@ export class UserService {
   async getAccessByRefresh(token: string) {
     const userDecode = this.loginTokenValidator.validateByToken(token);
 
-    const user = await this.userModel.findOne({
-      _id: userDecode.id,
-      deletedAt: null,
+    const user = await this.userRepository.findOne({
+      where: { id: userDecode.id },
     });
 
     if (!user) {
@@ -100,9 +96,8 @@ export class UserService {
   async getLoginTokenByRefresh(token: string) {
     const userDecode = this.loginTokenValidator.validateByToken(token);
 
-    const user = await this.userModel.findOne({
-      _id: userDecode.id,
-      deletedAt: null,
+    const user = await this.userRepository.findOne({
+      where: { id: userDecode.id },
     });
 
     if (!user) {
@@ -113,15 +108,14 @@ export class UserService {
   }
 
   async delete(user: ILoginUserInfo) {
-    const oneUser = await this.userModel.findOne({
-      _id: user.id,
-      deletedAt: null,
+    const oneUser = await this.userRepository.findOne({
+      where: { id: user.id },
     });
 
     if (!oneUser) {
       throw new BadRequestException('USER_DOES_NOT_EXIST');
     }
 
-    await this.userModel.updateOne({ _id: user.id }, { deletedAt: new Date() });
+    await this.userRepository.update({ id: user.id }, { deletedAt: new Date() });
   }
 }
