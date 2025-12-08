@@ -8,7 +8,7 @@ import { UserSocialLoginResDto } from './user.social.res.dto';
 @ApiTags('user-social')
 @Controller('')
 export class UserSocialController {
-  constructor(private userSocialService: UserSocialService) { }
+  constructor(private userSocialService: UserSocialService) {}
 
   @ApiOperation({
     summary: '유저 소셜 로그인 API',

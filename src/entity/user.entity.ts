@@ -4,7 +4,7 @@ import { AuthProvider } from '../common/domain/enum/auth.provider';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column({

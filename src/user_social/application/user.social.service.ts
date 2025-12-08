@@ -1,15 +1,14 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { AuthProvider } from '../../common/domain/enum/auth.provider';
 import { UserEntity } from '../../entity/user.entity';
-import { UserSocialLoginResDto } from '../api/user.social.res.dto';
 import { SocialExtern } from '../infra/social.extern';
 import { IUserGetInfo } from '../interface/user.social';
 import { UserSocialLoginReqDto } from '../api/user.social.req.dto';
-import { UserSocialLoginResDto } from '../api/user.social.res.dto';
 import { ILoginUserInfo } from '../../auth/interface/login.user';
 import { ILoginTokenValidator } from '../../auth/interface/login.token.validator';
+import { UserSocialLoginResDto } from '../api/user.social.res.dto';
 
 @Injectable()
 export class UserSocialService {
@@ -19,7 +18,7 @@ export class UserSocialService {
     private socialExtern: SocialExtern,
     @Inject('ILoginTokenValidator')
     private loginTokenValidator: ILoginTokenValidator,
-  ) { }
+  ) {}
 
   async socialLogin(getBody: UserSocialLoginReqDto): Promise<UserSocialLoginResDto> {
     const provider = getBody.provider as AuthProvider;
@@ -53,7 +52,7 @@ export class UserSocialService {
         birthDate: data.birthDate,
       };
     } else if (getBody.provider === 'NAVER') {
-      const data = await this.socialExtern.getUserByNaverToken(getBody.token);
+      const data = await this.socialExtern.getUserByNaverCode(getBody.token, getBody.state);
       socialUser = {
         provider,
         socialId: data.socialId,

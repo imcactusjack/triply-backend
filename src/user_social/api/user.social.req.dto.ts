@@ -4,7 +4,7 @@ import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 export class UserSocialLoginReqDto {
   @ApiProperty({
     type: String,
-    description: 'social 에서 전달하는 token (naver인 경우 code)',
+    description: 'social 에서 전달하는 token (naver인 경우 인증용 code)',
   })
   // =================================
   @IsNotEmpty()
@@ -13,7 +13,7 @@ export class UserSocialLoginReqDto {
 
   @ApiPropertyOptional({
     type: String,
-    description: 'naver로그인인 경우) naver 에서 전달하는 state',
+    description: 'naver 로그인인 경우) naver 에서 전달하는 state',
   })
   // =================================
   @IsOptional()

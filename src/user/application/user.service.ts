@@ -74,7 +74,7 @@ export class UserService {
 
     return {
       ...this.loginTokenValidator.issuance(loginUserInfo),
-      userId: user._id,
+      userId: user.id,
       userName: user.name,
     };
   }
@@ -109,17 +109,5 @@ export class UserService {
     }
 
     return this.loginTokenValidator.issuance(userDecode);
-  }
-
-  async delete(user: ILoginUserInfo) {
-    const oneUser = await this.userRepository.findOne({
-      where: { id: user.id },
-    });
-
-    if (!oneUser) {
-      throw new BadRequestException('USER_DOES_NOT_EXIST');
-    }
-
-    await this.userRepository.update({ id: user.id }, { deletedAt: new Date() });
   }
 }

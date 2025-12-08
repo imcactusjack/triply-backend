@@ -26,4 +26,4 @@ export class UserAccessByRefreshResDto {
   readonly accessToken: TokenDto;
 }
 
-export class UserRefreshByRefreshResDto extends LoginTokenResDto { }
+export class UserRefreshByRefreshResDto extends LoginTokenResDto {}
