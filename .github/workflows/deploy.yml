@@ -43,6 +43,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            set -e
+
             cd /home/ubuntu/triply
 
             echo "IMAGE_TAG=${{ github.sha }}" > .env.deploy

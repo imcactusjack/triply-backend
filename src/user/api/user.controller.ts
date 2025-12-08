@@ -25,7 +25,7 @@ import { UserAccessByRefreshResDto, UserLoginByEmailPasswordResDto, UserRefreshB
 @ApiTags('user')
 @Controller('')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   @ApiOperation({
     summary: '이메일 중복 검사 API',
@@ -77,18 +77,29 @@ export class UserController {
   async loginByEmailPassword(@Body() loginDto: UserLoginByEmailPasswordReqDto, @Res() res: Response) {
     const result = await this.userService.loginByEmailPassword(loginDto);
 
-    // refreshToken을 cookie에 설정
     res.cookie('refreshToken', result.refreshToken.value, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'prod',
       sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
     });
+    res.cookie('id', result.userId.toString(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'prod',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
+    });
+    res.cookie('name', result.userName || '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'prod',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
+    });
 
-    // accessToken만 body에 반환
+    // accessToken과 expiredAt만 body에 반환
     return res.json({
-      accessToken: result.accessToken,
-      name: result.name,
+      accessToken: result.accessToken.value,
+      expiredAt: result.accessToken.expiredAt,
     });
   }
 
@@ -115,7 +126,7 @@ export class UserController {
   })
   // ============================================
   @Post('/user/access-by-refresh')
-  getAccessByRefresh(@Body() getBody: UserGetAccessByRefreshReqDto, @Res() res: Response) {
+  getAccessByRefresh(@Body() getBody: UserGetAccessByRefreshReqDto) {
     return this.userService.getAccessByRefresh(getBody.token);
   }
 
@@ -162,6 +173,7 @@ export class UserController {
     // accessToken만 body에 반환
     return res.json({
       accessToken: result.accessToken,
+      expiredAt: result.accessToken.expiredAt,
     });
   }
 }

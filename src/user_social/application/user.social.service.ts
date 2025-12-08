@@ -7,6 +7,7 @@ import { UserSocialLoginResDto } from '../api/user.social.res.dto';
 import { SocialExtern } from '../infra/social.extern';
 import { IUserGetInfo } from '../interface/user.social';
 import { UserSocialLoginReqDto } from '../api/user.social.req.dto';
+import { UserSocialLoginResDto } from '../api/user.social.res.dto';
 import { ILoginUserInfo } from '../../auth/interface/login.user';
 import { ILoginTokenValidator } from '../../auth/interface/login.token.validator';
 
@@ -18,7 +19,7 @@ export class UserSocialService {
     private socialExtern: SocialExtern,
     @Inject('ILoginTokenValidator')
     private loginTokenValidator: ILoginTokenValidator,
-  ) {}
+  ) { }
 
   async socialLogin(getBody: UserSocialLoginReqDto): Promise<UserSocialLoginResDto> {
     const provider = getBody.provider as AuthProvider;
@@ -115,10 +116,10 @@ export class UserSocialService {
       };
     }
 
-    if (!loginUserInfo || !loginUserInfo.id) {
-      throw new InternalServerErrorException('user is not created');
-    }
-
-    return this.loginTokenValidator.issuance(loginUserInfo);
+    return {
+      ...this.loginTokenValidator.issuance(loginUserInfo),
+      userId: loginUserInfo.id,
+      userName: loginUserInfo.name,
+    };
   }
 }

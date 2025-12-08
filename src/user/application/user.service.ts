@@ -72,7 +72,11 @@ export class UserService {
       email: user.email ?? undefined,
     };
 
-    return { ...this.loginTokenValidator.issuance(loginUserInfo), name: user.name };
+    return {
+      ...this.loginTokenValidator.issuance(loginUserInfo),
+      userId: user._id,
+      userName: user.name,
+    };
   }
 
   async getAccessByRefresh(token: string) {

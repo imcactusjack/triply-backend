@@ -6,7 +6,7 @@ services:
     container_name: triply-backend-app
     restart: always
     env_file:
-      - .env.prod
+      - .env.prod # 앱 컨테이너 내부에서 사용할 환경 변수
     ports:
       - '3000:3000'
     depends_on:

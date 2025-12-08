@@ -1,14 +1,14 @@
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { UserSocialLoginResDto } from './user.social.res.dto';
 import { UserSocialService } from '../application/user.social.service';
 import { UserSocialLoginReqDto } from './user.social.req.dto';
+import { UserSocialLoginResDto } from './user.social.res.dto';
 
 @ApiTags('user-social')
 @Controller('')
 export class UserSocialController {
-  constructor(private userSocialService: UserSocialService) {}
+  constructor(private userSocialService: UserSocialService) { }
 
   @ApiOperation({
     summary: '유저 소셜 로그인 API',
@@ -25,17 +25,28 @@ export class UserSocialController {
   async socialLogin(@Body() getBody: UserSocialLoginReqDto, @Res() res: Response) {
     const result = await this.userSocialService.socialLogin(getBody);
 
-    // refreshToken을 cookie에 설정
     res.cookie('refreshToken', result.refreshToken.value, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'prod',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
+    });
+    res.cookie('id', result.userId.toString(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'prod',
+      sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
+    });
+    res.cookie('name', result.userName || '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'prod',
+      sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
     });
 
-    // accessToken만 body에 반환
     return res.json({
-      accessToken: result.accessToken,
+      accessToken: result.accessToken.value,
+      expiredAt: result.accessToken.expiredAt,
     });
   }
 }

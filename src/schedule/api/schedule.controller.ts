@@ -19,10 +19,7 @@ export class ScheduleController {
   })
   @ApiOkResponse({
     type: ScheduleRecommendResDto,
-    description: '여행 일정 추천 성공',
-  })
-  @ApiBadRequestResponse({
-    description: '잘못된 입력 값',
+    description: '정상적으로 추천할 경우',
   })
   @UseGuards(AuthUserAuthorizationGuard)
   @Post('/schedule/recommend')
