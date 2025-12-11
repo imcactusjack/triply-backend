@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
-import { LLMClient, TravelDayPlan, TravelPlanLLMInput, TravelPlanLLMResponse } from './interface/llm.client';
+import { LLMClient, TravelPlanLLMResponse } from './interface/llm.client';
+import { TravelDayPlan, TravelPlanLLMInput } from '../interface/travel.plan.type';
 import { buildTravelPlanPrompt } from './prompt/travel.plan.prompt';
 
 @Injectable()
@@ -73,7 +74,7 @@ export class GeminiClient implements LLMClient {
     }
 
     // 날짜 배열 생성
-    const dates = this.generateDateArray(input.dates.startDate, input.dates.endDate);
+    const dates = this.generateDateArray(input.startDate, input.endDate);
     const duration = dates.length;
 
     // 일정 데이터 정규화
@@ -84,28 +85,23 @@ export class GeminiClient implements LLMClient {
         }
 
         return {
-          day: dayPlan.day || index + 1,
-          date: dates[index] || dayPlan.date,
+          day: dayPlan.day ?? index + 1,
+          date: dates[index] ?? dayPlan.date,
           activities: Array.isArray(dayPlan.activities)
-            ? dayPlan.activities.map((activity: any) => ({
-                time: activity.time || '',
-                location: activity.location || '',
-                placeSearchQuery: activity.placeSearchQuery || undefined,
-                categories: activity.categories || [],
-                rating: activity.rating !== undefined ? activity.rating : undefined,
-                operatingHours: activity.operatingHours || undefined,
-                travelTime: activity.travelTime || undefined,
-                description: activity.description || undefined,
-                coordinates: activity.coordinates
-                  ? {
-                      latitude: activity.coordinates.latitude,
-                      longitude: activity.coordinates.longitude,
-                    }
-                  : {
-                      latitude: null,
-                      longitude: null,
-                    },
-              }))
+            ? dayPlan.activities.map((activity: any) => {
+                return {
+                  time: activity.time ?? '',
+                  location: activity.location ?? '',
+                  placeSearchQuery: activity.placeSearchQuery ?? undefined,
+                  categories: activity.categories ?? [],
+                  travelTime: typeof activity.travelTime === 'number' ? activity.travelTime : undefined,
+                  description: activity.description ?? undefined,
+                  coordinates: {
+                    latitude: null,
+                    longitude: null,
+                  },
+                };
+              })
             : [],
         };
       })
@@ -116,7 +112,7 @@ export class GeminiClient implements LLMClient {
       const dayIndex = schedule.length;
       schedule.push({
         day: dayIndex + 1,
-        date: dates[dayIndex] || '',
+        date: dates[dayIndex] ?? '',
         activities: [],
       });
     }
@@ -124,7 +120,7 @@ export class GeminiClient implements LLMClient {
     return {
       recommendedPlaces: parsedResponse.recommendedPlaces,
       schedule: schedule.slice(0, duration),
-      summary: parsedResponse.summary || '일정이 생성되었습니다.',
+      summary: parsedResponse.summary,
     };
   }
 
@@ -133,7 +129,6 @@ export class GeminiClient implements LLMClient {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // 시작일부터 종료일까지의 모든 날짜 생성
     const currentDate = new Date(start);
     while (currentDate <= end) {
       dates.push(currentDate.toISOString().split('T')[0]);

@@ -25,5 +25,5 @@ export class WorkspaceEntity extends BaseEntity {
     comment: '워크스페이스 멤버 사용자 ID 목록',
     nullable: true,
   })
-  memberUserIds: string[] | null;
+  memberUserIds: string | null;
 }

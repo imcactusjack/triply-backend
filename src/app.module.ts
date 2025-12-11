@@ -6,6 +6,7 @@ import { LoggerMiddleware } from './common/api/logger.middleware';
 import { AuthModule } from './auth/auth.module';
 import { UserSocialModule } from './user_social/user.social.module';
 import { UserModule } from './user/user.module';
+import { ScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { UserModule } from './user/user.module';
     AuthModule,
     UserModule,
     UserSocialModule,
-    // ScheduleModule,
+    ScheduleModule,
   ],
   controllers: [AppController],
   providers: [],

@@ -3,25 +3,6 @@ import { IsArray, IsDateString, IsNotEmpty, IsOptional, IsString, ValidateNested
 import { Type } from 'class-transformer';
 import { IsEndDateAfterStartDate } from '../../common/validator';
 
-class TravelDateDto {
-  @ApiProperty({
-    description: '여행 시작일 ex) yyyy-MM-dd',
-    example: '2025-01-01',
-  })
-  @IsNotEmpty()
-  @IsDateString()
-  startDate: string;
-
-  @ApiProperty({
-    description: '여행 종료일 ex) yyyy-MM-dd',
-    example: '2025-01-03',
-  })
-  @IsNotEmpty()
-  @IsDateString()
-  @IsEndDateAfterStartDate({ message: '여행 종료일은 시작일보다 이후여야 합니다.' })
-  endDate: string;
-}
-
 export class ScheduleRecommendReqDto {
   @ApiProperty({
     description: '출발지',
@@ -45,23 +26,32 @@ export class ScheduleRecommendReqDto {
   })
   @IsNotEmpty()
   @IsString()
-  companions: string;
+  companion: string;
 
   @ApiProperty({
-    description: '여행 기간',
-    type: TravelDateDto,
+    description: '여행 시작일 ex) yyyy-MM-dd',
+    example: '2025-01-01',
   })
   @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => TravelDateDto)
-  dates: TravelDateDto;
+  @IsDateString()
+  startDate: string;
 
   @ApiProperty({
+    description: '여행 종료일 ex) yyyy-MM-dd',
+    example: '2025-01-03',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  @IsEndDateAfterStartDate({ message: '여행 종료일은 시작일보다 이후여야 합니다.' })
+  endDate: string;
+
+  @ApiPropertyOptional({
     description: '여행 컨셉 list',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsArray()
-  concepts: string[];
+  @IsString({ each: true })
+  concept?: string[] = [];
 
   @ApiPropertyOptional({
     description: '추가 선호사항',
@@ -69,5 +59,5 @@ export class ScheduleRecommendReqDto {
   })
   @IsOptional()
   @IsString()
-  preferences?: string;
+  preference?: string;
 }

@@ -79,17 +79,6 @@ export class UserSocialService {
     };
 
     if (!user) {
-      const dupEmailUser = await this.userRepository.findOne({
-        where: {
-          email: socialUser.email,
-          deletedAt: IsNull(),
-        },
-      });
-
-      if (dupEmailUser) {
-        throw new BadRequestException('Already Signup email');
-      }
-
       const createUser = await this.userRepository.save(
         this.userRepository.create({
           name: socialUser.name,
