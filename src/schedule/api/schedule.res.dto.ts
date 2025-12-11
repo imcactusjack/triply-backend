@@ -36,19 +36,25 @@ export class TravelActivityDto {
   categories: string[];
 
   @ApiPropertyOptional({
+    description: 'Google Places place_id',
+  })
+  placeId?: string;
+
+  @ApiPropertyOptional({
     description: '구글 리뷰 별점',
   })
   rating?: number;
 
   @ApiPropertyOptional({
-    description: '운영 시간',
+    description: '운영 시간(요일별 배열)',
+    type: [String],
   })
-  operatingHours?: string;
+  operatingHours?: string[];
 
   @ApiPropertyOptional({
-    description: '다음 장소까지 이동 시간',
+    description: '다음 장소까지 이동 시간(분)',
   })
-  travelTime?: string;
+  travelTime?: number;
 
   @ApiPropertyOptional({
     description: '장소 설명',

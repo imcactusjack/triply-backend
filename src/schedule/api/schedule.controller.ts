@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ScheduleService } from '../application/schedule.service';
 import { ScheduleRecommendReqDto } from './schedule.req.dto';
 import { ScheduleRecommendResDto } from './schedule.res.dto';
@@ -23,10 +23,7 @@ export class ScheduleController {
   })
   @UseGuards(AuthUserAuthorizationGuard)
   @Post('/schedule/recommend')
-  async recommendSchedule(
-    @User() user: ILoginUserInfo,
-    @Body() request: ScheduleRecommendReqDto,
-  ): Promise<ScheduleRecommendResDto> {
+  async recommendSchedule(@User() user: ILoginUserInfo, @Body() request: ScheduleRecommendReqDto) {
     return this.scheduleService.recommendSchedule(user.id, request);
   }
 }
