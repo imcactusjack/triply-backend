@@ -46,7 +46,9 @@ ${input.preference ? `- 추가 선호사항: ${input.preference}` : ''}
 10. 각 장소는 반드시 다음 형식을 포함할 것:
 
 장소 정보 필드:
-- time: string (예: "09:00-12:00") // 해당 활동의 시간대
+- order: number // 활동 순서 (0부터 시작, 당일 첫 활동은 0, 두 번째는 1, ...)
+- activityStartTime: string | null // 활동 시작 시간 ex) "09:00" (HH:mm 형식)
+- activityEndTime: string | null // 활동 종료 시간 ex) "12:00" (HH:mm 형식)
 - location: string
 - placeId: string (구글 Places API에서 받은 고유 ID)
 - placeSearchQuery: string (구글 Places / Maps에서 검색하기 좋은 형태로, "장소명 + 지역명" 형식 예: "스타벅스 홍대입구역점, Seoul")
@@ -88,7 +90,9 @@ ${input.preference ? `- 추가 선호사항: ${input.preference}` : ''}
       "date": "${input.startDate}",
       "activities": [
         {
-          "time": "09:00-12:00",
+          "order": 0,
+          "activityStartTime": "09:00",
+          "activityEndTime": "12:00",
           "location": "장소명",
           "placeSearchQuery": "장소명 + 지역명 형태의 검색용 문자열",
           "categories": ["식당", "핫플"],

@@ -9,7 +9,9 @@ export interface TravelPlanLLMInput {
 }
 
 export interface TravelActivity {
-  time: string; // 시간대 ex) 09:00-12:00
+  order: number; // 활동 순서 (0부터 시작)
+  activityStartTime: string | null; // 활동 시작 시간 ex) HH:mm
+  activityEndTime: string | null; // 활동 종료 시간 ex) HH:mm
   location: string; // 장소명
   placeSearchQuery?: string; // 구글 Places 검색용 쿼리 "장소명 + 지역명" 형식
   placeId?: string; // Google Places place_id
