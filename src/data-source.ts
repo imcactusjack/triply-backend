@@ -17,13 +17,10 @@ export default new DataSource({
   database: process.env.DATABASE_DATABASE,
   timezone: 'local',
   namingStrategy: new SnakeNamingStrategy(),
-  entities: [path.join(__dirname, '**', '*.entity{.ts,.js}')],
-  migrations: [
-    // 개발 환경: src/migrations
-    path.join(__dirname, 'migrations', '*.ts'),
-    // 프로덕션 환경: dist/src/migrations (빌드된 경우) 또는 src/migrations (복사된 경우)
-    path.join(process.cwd(), 'src', 'migrations', '*.ts'),
-  ],
+
+  entities: [path.join(__dirname, '**', '*.entity.{js,ts}')],
+  migrations: [path.join(__dirname, 'migrations', '*.{js,ts}')],
+
   synchronize: false,
   logging: process.env.DATABASE_LOGGING === 'true',
 });
