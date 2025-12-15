@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class TravelCoordinatesDto {
+export class TravelCoordinatesResDto {
   @ApiProperty({
     description: '위도',
     nullable: true,
@@ -14,11 +14,23 @@ export class TravelCoordinatesDto {
   longitude: number | null;
 }
 
-export class TravelActivityDto {
+export class TravelActivityResDto {
   @ApiProperty({
-    description: '시간대',
+    description: '활동 순서 (0부터 시작)',
   })
-  time: string;
+  order: number;
+
+  @ApiPropertyOptional({
+    description: '활동 시작 시간 ex) HH:mm',
+    nullable: true,
+  })
+  activityStartTime: string | null;
+
+  @ApiPropertyOptional({
+    description: '활동 종료 시간 ex) HH:mm',
+    nullable: true,
+  })
+  activityEndTime: string | null;
 
   @ApiProperty({
     description: '장소명',
@@ -47,7 +59,6 @@ export class TravelActivityDto {
 
   @ApiPropertyOptional({
     description: '운영 시간(요일별 배열)',
-    type: [String],
   })
   operatingHours?: string[];
 
@@ -64,39 +75,39 @@ export class TravelActivityDto {
   @ApiProperty({
     description: '좌표 정보',
   })
-  coordinates: TravelCoordinatesDto;
+  coordinates: TravelCoordinatesResDto;
 }
 
-export class TravelDayPlanDto {
+export class TravelDayPlanResDto {
   @ApiProperty({
-    description: '일차',
+    description: '일자',
   })
   day: number;
 
   @ApiProperty({
-    description: '날짜 (yyyy-MM-dd)',
+    description: '날짜 ex) yyyy-MM-dd',
   })
   date: string;
 
   @ApiProperty({
     description: '활동 목록',
   })
-  activities: TravelActivityDto[];
+  activities: TravelActivityResDto[];
 }
 
 export class ScheduleRecommendResDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '추천 여행지 목록',
   })
-  recommendedDestinations: string[];
+  recommendedDestinations?: string[];
 
   @ApiProperty({
     description: '일정 ex) Day 1 ~ N',
   })
-  schedule: TravelDayPlanDto[];
+  schedule: TravelDayPlanResDto[];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '전체 일정 요약',
   })
-  summary: string;
+  summary?: string;
 }
