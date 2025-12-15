@@ -13,22 +13,30 @@ COPY . .
 # Build app
 RUN npm run build
 
+# Compile data-source.ts for migrations (CommonJS format)
+RUN npx tsc src/data-source.ts \
+  --outDir dist/src \
+  --module commonjs \
+  --target ES2021 \
+  --esModuleInterop \
+  --skipLibCheck \
+  --resolveJsonModule \
+  --moduleResolution node
+
 # Stage 2: Run
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install prod deps + ts-node for migrations
+# Install prod deps only
 COPY package*.json ./
-RUN npm ci --omit=dev && npm install -g ts-node typescript
+RUN npm ci --omit=dev
 
-# Copy built dist
+# Copy built dist (includes compiled data-source.js)
 COPY --from=builder /app/dist ./dist
 
-# Copy migrations and data-source for migration execution
+# Copy migrations for migration execution
 COPY --from=builder /app/src/migrations ./src/migrations
-COPY --from=builder /app/src/data-source.ts ./src/data-source.ts
-COPY --from=builder /app/tsconfig.json ./
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh ./

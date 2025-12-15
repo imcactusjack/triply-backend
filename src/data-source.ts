@@ -8,7 +8,7 @@ config({
   path: process.env.NODE_ENV === 'prod' ? '.env.prod' : '.env.local',
 });
 
-export default new DataSource({
+const dataSource = new DataSource({
   type: 'mysql',
   host: process.env.DATABASE_HOST || 'localhost',
   port: Number(process.env.DATABASE_PORT) || 3306,
@@ -18,9 +18,17 @@ export default new DataSource({
   timezone: 'local',
   namingStrategy: new SnakeNamingStrategy(),
 
-  entities: [path.join(__dirname, '**', '*.entity.{js,ts}')],
-  migrations: [path.join(__dirname, 'migrations', '*.{js,ts}')],
+  entities: [
+    path.join(__dirname, '**', '*.entity.{js,ts}'),
+    path.join(process.cwd(), 'dist', '**', '*.entity.{js,ts}'),
+  ],
+  migrations: [
+    path.join(__dirname, 'migrations', '*.{js,ts}'),
+    path.join(process.cwd(), 'src', 'migrations', '*.{js,ts}'),
+  ],
 
   synchronize: false,
   logging: process.env.DATABASE_LOGGING === 'true',
 });
+
+export default dataSource;
