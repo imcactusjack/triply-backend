@@ -31,22 +31,12 @@ export class UserSocialController {
       sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
     });
-    res.cookie('id', result.userId.toString(), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'prod',
-      sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
-    });
-    res.cookie('name', result.userName || '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'prod',
-      sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
-    });
 
     return res.json({
       accessToken: result.accessToken.value,
       expiredAt: result.accessToken.expiredAt,
+      userId: result.userId,
+      userName: result.userName,
     });
   }
 }

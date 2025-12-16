@@ -57,7 +57,7 @@ export class UserController {
   }
 
   @ApiOperation({
-    summary: '유저 email password API',
+    summary: '유저 이메일 패스워드 로그인 API',
     description:
       '회원가입 진행한 email password 를 통해 로그인 후 액세스 토큰을 반환합니다, 리프레쉬 토큰은 쿠키에 담깁니다.<br>' +
       '소셜로 가입한 경우 에러가 발생합니다.',
@@ -83,23 +83,12 @@ export class UserController {
       sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
     });
-    res.cookie('id', result.userId.toString(), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'prod',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
-    });
-    res.cookie('name', result.userName || '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'prod',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30일
-    });
 
-    // accessToken과 expiredAt만 body에 반환
     return res.json({
       accessToken: result.accessToken.value,
       expiredAt: result.accessToken.expiredAt,
+      userId: result.userId,
+      userName: result.userName,
     });
   }
 
