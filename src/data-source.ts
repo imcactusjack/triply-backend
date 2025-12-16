@@ -23,12 +23,11 @@ const dataSource = new DataSource({
     path.join(process.cwd(), 'dist', '**', '*.entity.{js,ts}'),
   ],
   migrations: [
-    // 프로덕션 환경에서는 src/migrations 사용
+    // 프로덕션: 컴파일된 JS 파일 사용 (dist/src/migrations/*.js)
+    // 개발: TypeScript 소스 파일 사용 (src/migrations/*.ts with ts-node)
     process.env.NODE_ENV === 'prod'
-      ? path.join(process.cwd(), 'src', 'migrations', '*.{js,ts}')
-      : path.join(__dirname, 'migrations', '*.{js,ts}'),
-    // 개발 환경을 위한 fallback
-    path.join(process.cwd(), 'src', 'migrations', '*.{js,ts}'),
+      ? path.join(__dirname, 'migrations', '*.js')
+      : path.join(process.cwd(), 'src', 'migrations', '*.ts'),
   ],
 
   synchronize: false,
