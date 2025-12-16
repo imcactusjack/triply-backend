@@ -23,7 +23,11 @@ const dataSource = new DataSource({
     path.join(process.cwd(), 'dist', '**', '*.entity.{js,ts}'),
   ],
   migrations: [
-    path.join(__dirname, 'migrations', '*.{js,ts}'),
+    // 프로덕션 환경에서는 src/migrations 사용
+    process.env.NODE_ENV === 'prod'
+      ? path.join(process.cwd(), 'src', 'migrations', '*.{js,ts}')
+      : path.join(__dirname, 'migrations', '*.{js,ts}'),
+    // 개발 환경을 위한 fallback
     path.join(process.cwd(), 'src', 'migrations', '*.{js,ts}'),
   ],
 
