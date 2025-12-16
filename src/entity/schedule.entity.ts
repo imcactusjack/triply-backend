@@ -14,12 +14,6 @@ export class ScheduleEntity extends BaseEntity {
 
   @Column({
     type: 'text',
-    comment: '추천 여행지 목록(JSON 문자열)',
-  })
-  recommendedDestinations: string;
-
-  @Column({
-    type: 'text',
     comment: '일정 본문(JSON 문자열)',
   })
   schedule: string;

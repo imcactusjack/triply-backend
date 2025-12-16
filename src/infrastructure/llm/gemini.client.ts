@@ -88,13 +88,15 @@ export class GeminiClient implements LLMClient {
           day: dayPlan.day ?? index + 1,
           date: dates[index] ?? dayPlan.date,
           activities: Array.isArray(dayPlan.activities)
-            ? dayPlan.activities.map((activity: any) => {
+            ? dayPlan.activities.map((activity: any, activityIndex: number) => {
                 return {
-                  time: activity.time ?? '',
-                  location: activity.location ?? '',
+                  order: activity.order ?? activityIndex,
+                  activityStartTime: activity.activityStartTime,
+                  activityEndTime: activity.activityEndTime,
+                  location: activity.location,
                   placeSearchQuery: activity.placeSearchQuery ?? undefined,
                   categories: activity.categories ?? [],
-                  travelTime: typeof activity.travelTime === 'number' ? activity.travelTime : undefined,
+                  travelTime: activity.travelTime,
                   description: activity.description ?? undefined,
                   coordinates: {
                     latitude: null,
